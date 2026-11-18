@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ವಿದ್ಯಾರ್ಥಿಗಳ ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ ತಯಾರಕ</title>
+  <!-- Kannada Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- html2canvas library for Image Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #eff6ff;
+      --gold-bg: #fef08a;
+      --gold-border: #eab308;
+      --gold-text: #854d0e;
+      --silver-bg: #bbf7d0;
+      --silver-border: #22c55e;
+      --silver-text: #166534;
+      --bronze-bg: #fed7aa;
+      --bronze-border: #f97316;
+      --bronze-text: #9a3412;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans Kannada', 'Tunga', 'Nudi', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 15px;
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    h2.section-title {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.25rem;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #475569;
+    }
+
+    .form-group input {
+      padding: 9px 11px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Entry Table */
+    .entry-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .entry-table th, .entry-table td {
+      padding: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .entry-table th {
+      background-color: #f8fafc;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+
+    .entry-table input {
+      width: 100%;
+      padding: 7px 9px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .entry-table input.invalid-mark {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-purple  { background: #7c3aed; color: #fff; }
+    .btn-danger  { background: #ef4444; color: #fff; padding: 6px 10px; font-size: 0.85rem; }
+    .btn-outline { background: #e2e8f0; color: #334155; }
+
+    /* Bulk Paste Box */
+    #bulk-box {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8fafc;
+      border: 1.5px dashed #94a3b8;
+      border-radius: 8px;
+    }
+
+    #bulk-box textarea {
+      width: 100%;
+      height: 110px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    /* ================= PREVIEW / CAPTURE AREA ================= */
+    .preview-wrapper {
+      overflow-x: auto;
+      padding: 5px;
+    }
+
+    #capture-area {
+      background: #ffffff;
+      border: 2px solid #1e3a8a;
+      border-radius: 12px;
+      overflow: hidden;
+      min-width: 340px;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+
+    .result-header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #ffffff;
+      padding: 16px 18px;
+      text-align: center;
+    }
+
+    .result-header .school-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin: 0 0 4px 0;
+      letter-spacing: 0.3px;
+    }
+
+    .result-header .test-subtitle {
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.18);
+      display: inline-block;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      background: #eff6ff;
+      padding: 10px 16px;
+      border-bottom: 2px solid #bfdbfe;
+      font-size: 0.9rem;
+      color: #1e3a8a;
+    }
+
+    .meta-item {
+      font-weight: 600;
+    }
+
+    .meta-item span {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .result-table th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      padding: 10px 8px;
+      border-bottom: 2px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    .result-table th:nth-child(2) {
+      text-align: left;
+    }
+
+    .result-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .result-table td:nth-child(2) {
+      text-align: left;
+    }
+
+    /* Highlight Rows for 1st, 2nd, 3rd */
+    tr.rank-1 {
+      background-color: var(--gold-bg) !important;
+      color: var(--gold-text);
+    }
+    tr.rank-1 td {
+      border-bottom: 1px solid var(--gold-border);
+      font-weight: 800;
+    }
+
+    tr.rank-2 {
+      background-color: var(--silver-bg) !important;
+      color: var(--silver-text);
+    }
+    tr.rank-2 td {
+      border-bottom: 1px solid var(--silver-border);
+      font-weight: 700;
+    }
+
+    tr.rank-3 {
+      background-color: var(--bronze-bg) !important;
+      color: var(--bronze-text);
+    }
+    tr.rank-3 td {
+      border-bottom: 1px solid var(--bronze-border);
+      font-weight: 700;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge-1 { background: #eab308; color: #ffffff; }
+    .badge-2 { background: #16a34a; color: #ffffff; }
+    .badge-3 { background: #ea580c; color: #ffffff; }
+    .badge-full {
+      display: inline-block;
+      background: #b91c1c;
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    .result-footer {
+      background: #f8fafc;
+      padding: 10px 16px;
+      border-top: 2px solid #cbd5e1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .legend-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .legend-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .share-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .share-actions button {
+      padding: 12px 22px;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .card { padding: 14px; }
+      .result-header .school-name { font-size: 1.15rem; }
+      .result-table th, .result-table td { padding: 7px 5px; font-size: 0.86rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 1. Test Details Section -->
+  <div class="card">
+    <h2 class="section-title">📝 ಪರೀಕ್ಷೆಯ ವಿವರಗಳು (Test Details)</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ಶಾಲೆಯ ಹೆಸರು</label>
+        <input type="text" id="schoolName" placeholder="ಉದಾ: ಸ.ಹಿ.ಪ್ರಾ ಶಾಲೆ, ಬೆಂಗಳೂರು" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ಪರೀಕ್ಷೆಯ ಶೀರ್ಷಿಕೆ</label>
+        <input type="text" id="testTitle" value="ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ತರಗತಿ (Class)</label>
+        <input type="text" id="className" placeholder="ಉದಾ: 7ನೇ ತರಗತಿ" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ವಿಷಯ (Subject)</label>
+        <input type="text" id="subjectName" placeholder="ಉದಾ: ಗಣಿತ" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ಘಟಕ (Unit)</label>
+        <input type="text" id="unitName" placeholder="ಉದಾ: ಭಿನ್ನರಾಶಿಗಳು" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ಒಟ್ಟು ಅಂಕಗಳು (Total Marks)</label>
+        <input type="number" id="totalMarks" value="25" min="1" step="0.5" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ದಿನಾಂಕ (Date)</label>
+        <input type="date" id="testDate" oninput="updateAll()">
+      </div>
+      <div class="form-group">
+        <label>ಶಿಕ್ಷಕರ ಹೆಸರು (ಐಚ್ಛಿಕ)</label>
+        <input type="text" id="teacherName" placeholder="ಶಿಕ್ಷಕರ ಹೆಸರು" oninput="updateAll()">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Student Marks Entry Section -->
+  <div class="card">
+    <h2 class="section-title">👨‍🎓 ವಿದ್ಯಾರ್ಥಿಗಳ ಅಂಕ ನಮೂದಿಸಿ</h2>
+    
+    <div class="btn-row" style="margin-top: 0; margin-bottom: 10px;">
+      <button class="btn-outline" onclick="toggleBulkBox()">📋 ಒಟ್ಟಿಗೆ ಹೆಸರುಗಳನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ (Bulk Add)</button>
+      <button class="btn-warning" onclick="clearOnlyMarks()">🧹 ಅಂಕಗಳನ್ನು ಮಾತ್ರ ಅಳಿಸಿ (ಹೊಸ ಟೆಸ್ಟ್‌ಗಾಗಿ)</button>
+      <button class="btn-purple" onclick="sortByMarks()">📊 ಅಂಕಗಳ ಪ್ರಕಾರ ಜೋಡಿಸಿ (Rank Wise)</button>
+    </div>
+
+    <div id="bulk-box">
+      <label style="font-weight:700; font-size:0.9rem;">ಪ್ರತಿ ಸಾಲಿನಲ್ಲಿ ಒಬ್ಬ ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ (Excel/WhatsApp ನಿಂದ):</label>
+      <textarea id="bulkNamesInput" placeholder="ರಮೇಶ್&#10;ಸುರೇಶ್&#10;ಕಾವ್ಯ&#10;ಮಂಜುಳಾ"></textarea>
+      <div class="btn-row">
+        <button class="btn-success" onclick="applyBulkNames(false)">➕ ಪಟ್ಟಿಗೆ ಸೇರಿಸಿ</button>
+        <button class="btn-danger" onclick="applyBulkNames(true)">🔄 ಹಳೆಯ ಪಟ್ಟಿ ತೆಗೆದು ಹೊಸದು ಹಾಕಿ</button>
+        <button class="btn-outline" onclick="toggleBulkBox()">ರದ್ದುಮಾಡಿ</button>
+      </div>
+    </div>
+
+    <table class="entry-table">
+      <thead>
+        <tr>
+          <th style="width: 50px;">ಅ.ಸಂ</th>
+          <th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th>
+          <th style="width: 115px;">ಪಡೆದ ಅಂಕ</th>
+          <th style="width: 60px;">ಅಳಿಸಿ</th>
+        </tr>
+      </thead>
+      <tbody id="entryBody"></tbody>
+    </table>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="addStudentRow()">➕ ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಸೇರಿಸಿ</button>
+    </div>
+  </div>
+
+  <!-- 3. Live Result Preview & Image Export -->
+  <div class="card">
+    <h2 class="section-title">🖼️ ಫಲಿತಾಂಶ ಪಟ್ಟಿ (ಇಮೇಜ್ ಆಗಿ ಶೇರ್ ಮಾಡಲು)</h2>
+    
+    <div class="preview-wrapper">
+      <div id="capture-area">
+        <div class="result-header">
+          <div class="school-name" id="prevSchool">ಶಾಲೆಯ ಹೆಸರು</div>
+          <div class="test-subtitle" id="prevTitle">ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ</div>
+        </div>
+
+        <div class="meta-bar">
+          <div class="meta-item">ತರಗತಿ: <span id="prevClass">-</span></div>
+          <div class="meta-item">ವಿಷಯ: <span id="prevSubject">-</span></div>
+          <div class="meta-item">ಘಟಕ: <span id="prevUnit">-</span></div>
+          <div class="meta-item">ಒಟ್ಟು ಅಂಕ: <span id="prevTotal">25</span></div>
+          <div class="meta-item">ದಿನಾಂಕ: <span id="prevDate">-</span></div>
+        </div>
+
+        <table class="result-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">ಅ.ಸಂ</th>
+              <th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th>
+              <th style="width: 95px;">ಪಡೆದ ಅಂಕ</th>
+              <th style="width: 120px;">ಸ್ಥಾನ (Rank)</th>
+            </tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+
+        <div class="result-footer">
+          <div id="summaryStats">ಒಟ್ಟು: 0 | ಹಾಜರು: 0</div>
+          <div class="legend-row">
+            <span class="legend-dot"><span class="dot" style="background:#fef08a; border:1px solid #eab308;"></span> ಪ್ರಥಮ</span>
+            <span class="legend-dot"><span class="dot" style="background:#bbf7d0; border:1px solid #22c55e;"></span> ದ್ವಿತೀಯ</span>
+            <span class="legend-dot"><span class="dot" style="background:#fed7aa; border:1px solid #f97316;"></span> ತೃತೀಯ</span>
+          </div>
+          <div id="prevTeacher" style="width:100%; text-align:right; font-size:0.82rem; color:#475569; display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="share-actions">
+      <button class="btn-success" onclick="downloadResultImage()">📥 Image ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (PNG)</button>
+      <button class="btn-primary" onclick="shareResultImage()">📲 WhatsApp / Share ಮಾಡಿ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let students = [
+    { name: "ಕಾವ್ಯ", marks: "25" },
+    { name: "ರಮೇಶ್", marks: "24" },
+    { name: "ಮಂಜುಳಾ", marks: "22" },
+    { name: "ಸುರೇಶ್", marks: "19" }
+  ];
+
+  // Load saved data from localStorage
+  window.onload = function() {
+    const saved = localStorage.getItem("kannadaTestResultData_v1");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.schoolName !== undefined) document.getElementById("schoolName").value = data.schoolName;
+        if (data.testTitle !== undefined) document.getElementById("testTitle").value = data.testTitle;
+        if (data.className !== undefined) document.getElementById("className").value = data.className;
+        if (data.subjectName !== undefined) document.getElementById("subjectName").value = data.subjectName;
+        if (data.unitName !== undefined) document.getElementById("unitName").value = data.unitName;
+        if (data.totalMarks !== undefined) document.getElementById("totalMarks").value = data.totalMarks;
+        if (data.teacherName !== undefined) document.getElementById("teacherName").value = data.teacherName;
+        if (Array.isArray(data.students) && data.students.length > 0) students = data.students;
+      } catch (e) {}
+    }
+
+    // Set today's date if empty
+    const dateInput = document.getElementById("testDate");
+    if (!dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    renderEntryTable();
+    updateAll();
+  };
+
+  function saveToStorage() {
+    const data = {
+      schoolName: document.getElementById("schoolName").value,
+      testTitle: document.getElementById("testTitle").value,
+      className: document.getElementById("className").value,
+      subjectName: document.getElementById("subjectName").value,
+      unitName: document.getElementById("unitName").value,
+      totalMarks: document.getElementById("totalMarks").value,
+      teacherName: document.getElementById("teacherName").value,
+      students: students
+    };
+    localStorage.setItem("kannadaTestResultData_v1", JSON.stringify(data));
+  }
+
+  function renderEntryTable() {
+    const tbody = document.getElementById("entryBody");
+    const total = parseFloat(document.getElementById("totalMarks").value) || 0;
+    tbody.innerHTML = "";
+
+    students.forEach((stu, index) => {
+      const m = parseFloat(stu.marks);
+      const isInvalid = !isNaN(m) && total > 0 && m > total;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="font-weight:700; text-align:center;">${index + 1}</td>
+        <td>
+          <input type="text" value="${escapeHtml(stu.name)}" placeholder="ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು" 
+            oninput="updateStudent(${index}, 'name', this.value)">
+        </td>
+        <td>
+          <input type="number" step="0.5" min="0" value="${escapeHtml(stu.marks)}" placeholder="ಅಂಕ (ಖಾಲಿ=ಗೈರು)"
+            class="${isInvalid ? 'invalid-mark' : ''}"
+            oninput="updateStudent(${index}, 'marks', this.value, this)">
+        </td>
+        <td style="text-align:center;">
+          <button class="btn-danger" onclick="removeStudent(${index})" title="ಅಳಿಸಿ">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateStudent(index, field, value, inputEl) {
+    students[index][field] = value;
+    if (field === 'marks' && inputEl) {
+      const total = parseFloat(document.getElementById("totalMarks").value) || 0;
+      const m = parseFloat(value);
+      if (!isNaN(m) && total > 0 && m > total) {
+        inputEl.classList.add("invalid-mark");
+      } else {
+        inputEl.classList.remove("invalid-mark");
+      }
+    }
+    updatePreview();
+    saveToStorage();
+  }
+
+  function addStudentRow() {
+    students.push({ name: "", marks: "" });
+    renderEntryTable();
+    updatePreview();
+    saveToStorage();
+    // Focus newly added name input
+    const inputs = document.querySelectorAll("#entryBody tr:last-child input");
+    if (inputs.length > 0) inputs[0].focus();
+  }
+
+  function removeStudent(index) {
+    students.splice(index, 1);
+    renderEntryTable();
+    updatePreview();
+    saveToStorage();
+  }
+
+  function clearOnlyMarks() {
+    if (confirm("ಎಲ್ಲಾ ವಿದ್ಯಾರ್ಥಿಗಳ ಅಂಕಗಳನ್ನು ಮಾತ್ರ ಅಳಿಸಬೇಕೆ? (ಹೆಸರುಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ)")) {
+      students = students.map(s => ({ name: s.name, marks: "" }));
+      renderEntryTable();
+      updatePreview();
+      saveToStorage();
+    }
+  }
+
+  function sortByMarks() {
+    students.sort((a, b) => {
+      const mA = a.marks === "" ? -1 : parseFloat(a.marks);
+      const mB = b.marks === "" ? -1 : parseFloat(b.marks);
+      return mB - mA;
+    });
+    renderEntryTable();
+    updatePreview();
+    saveToStorage();
+  }
+
+  function toggleBulkBox() {
+    const box = document.getElementById("bulk-box");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+  }
+
+  function applyBulkNames(replaceAll) {
+    const text = document.getElementById("bulkNamesInput").value;
+    const names = text.split(/\r?\n/).map(n => n.trim()).filter(n => n.length > 0);
+    if (names.length === 0) {
+      alert("ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ಹೆಸರನ್ನಾದರೂ ನಮೂದಿಸಿ.");
+      return;
+    }
+    const newEntries = names.map(name => ({ name: name, marks: "" }));
+    if (replaceAll) {
+      students = newEntries;
+    } else {
+      students = students.concat(newEntries);
+    }
+    document.getElementById("bulkNamesInput").value = "";
+    toggleBulkBox();
+    renderEntryTable();
+    updatePreview();
+    saveToStorage();
+  }
+
+  function updateAll() {
+    renderEntryTable(); // update invalid mark highlight if totalMarks changed
+    updatePreview();
+    saveToStorage();
+  }
+
+  function updatePreview() {
+    const school = document.getElementById("schoolName").value.trim() || "ಶಾಲೆಯ ಹೆಸರು";
+    const title = document.getElementById("testTitle").value.trim() || "ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ";
+    const cls = document.getElementById("className").value.trim() || "-";
+    const subj = document.getElementById("subjectName").value.trim() || "-";
+    const unit = document.getElementById("unitName").value.trim() || "-";
+    const total = parseFloat(document.getElementById("totalMarks").value) || 0;
+    const rawDate = document.getElementById("testDate").value;
+    const teacher = document.getElementById("teacherName").value.trim();
+
+    document.getElementById("prevSchool").textContent = school;
+    document.getElementById("prevTitle").textContent = title;
+    document.getElementById("prevClass").textContent = cls;
+    document.getElementById("prevSubject").textContent = subj;
+    document.getElementById("prevUnit").textContent = unit;
+    document.getElementById("prevTotal").textContent = total > 0 ? total : "-";
+
+    if (rawDate) {
+      const parts = rawDate.split("-");
+      document.getElementById("prevDate").textContent = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else {
+      document.getElementById("prevDate").textContent = "-";
+    }
+
+    const teacherEl = document.getElementById("prevTeacher");
+    if (teacher) {
+      teacherEl.style.display = "block";
+      teacherEl.textContent = `ವಿಷಯ ಶಿಕ್ಷಕರು: ${teacher}`;
+    } else {
+      teacherEl.style.display = "none";
+    }
+
+    // Calculate valid scores for Ranking
+    // Logic: Out-of-out or highest distinct score = 1st, next distinct = 2nd, next distinct = 3rd
+    const validScores = students
+      .map(s => (s.marks !== "" && !isNaN(parseFloat(s.marks))) ? parseFloat(s.marks) : null)
+      .filter(m => m !== null && (total <= 0 || m <= total));
+
+    // Unique scores sorted descending
+    const uniqueSorted = [...new Set(validScores)].sort((a, b) => b - a);
+
+    const previewBody = document.getElementById("previewBody");
+    previewBody.innerHTML = "";
+
+    let presentCount = 0;
+    let totalValidStudents = 0;
+
+    students.forEach((stu, idx) => {
+      if (!stu.name.trim() && stu.marks === "") return;
+      totalValidStudents++;
+
+      const hasMark = stu.marks !== "" && !isNaN(parseFloat(stu.marks));
+      const score = hasMark ? parseFloat(stu.marks) : null;
+      if (hasMark) presentCount++;
+
+      let rankIndex = -1;
+      if (hasMark && (total <= 0 || score <= total)) {
+        rankIndex = uniqueSorted.indexOf(score);
+      }
+
+      let rowClass = "";
+      let rankHtml = "-";
+      let fullMarksBadge = "";
+
+      if (hasMark && total > 0 && score === total) {
+        fullMarksBadge = `<span class="badge-full">⭐ ಪೂರ್ಣ ಅಂಕ</span>`;
+      }
+
+      if (rankIndex === 0) {
+        rowClass = "rank-1";
+        rankHtml = `<span class="rank-badge badge-1">🥇 ಪ್ರಥಮ</span>`;
+      } else if (rankIndex === 1) {
+        rowClass = "rank-2";
+        rankHtml = `<span class="rank-badge badge-2">🥈 ದ್ವಿತೀಯ</span>`;
+      } else if (rankIndex === 2) {
+        rowClass = "rank-3";
+        rankHtml = `<span class="rank-badge badge-3">🥉 ತೃತೀಯ</span>`;
+      } else if (!hasMark) {
+        rankHtml = `<span style="color:#94a3b8; font-size:0.85rem;">ಗೈರು</span>`;
+      } else if (total > 0 && score > total) {
+        rankHtml = `<span style="color:#ef4444; font-size:0.82rem;">ತಪ್ಪು ಅಂಕ</span>`;
+      } else {
+        rankHtml = `<span style="color:#64748b;">-</span>`;
+      }
+
+      const tr = document.createElement("tr");
+      if (rowClass) tr.className = rowClass;
+
+      tr.innerHTML = `
+        <td>${totalValidStudents}</td>
+        <td>${escapeHtml(stu.name || "ಹೆಸರಿಲ್ಲ")}${fullMarksBadge}</td>
+        <td>${hasMark ? score + (total > 0 ? " / " + total : "") : "-"}</td>
+        <td>${rankHtml}</td>
+      `;
+      previewBody.appendChild(tr);
+    });
+
+    const absentCount = totalValidStudents - presentCount;
+    document.getElementById("summaryStats").textContent =
+      `ಒಟ್ಟು: ${totalValidStudents} | ಹಾಜರು: ${presentCount} | ಗೈರು: ${absentCount}`;
+  }
+
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return "";
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function generateCanvas() {
+    if (typeof html2canvas === "undefined") {
+      alert("Image ತಯಾರಿಸಲು ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಅಗತ್ಯವಿದೆ. ದಯವಿಟ್ಟು ಇಂಟರ್ನೆಟ್ ಆನ್ ಮಾಡಿ ಪುಟವನ್ನು Refresh ಮಾಡಿ.");
+      return null;
+    }
+    const element = document.getElementById("capture-area");
+    return await html2canvas(element, {
+      scale: 2.5,
+      backgroundColor: "#ffffff",
+      useCORS: true
+    });
+  }
+
+  async function downloadResultImage() {
+    const canvas = await generateCanvas();
+    if (!canvas) return;
+
+    const unit = document.getElementById("unitName").value.trim() || "Result";
+    const link = document.createElement("a");
+    link.download = `Test_Result_${unit}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  async function shareResultImage() {
+    const canvas = await generateCanvas();
+    if (!canvas) return;
+
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "Test_Result.png", { type: "image/png" });
+      const school = document.getElementById("schoolName").value.trim() || "ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ";
+      const unit = document.getElementById("unitName").value.trim() || "";
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: school,
+            text: `${school} - ${unit} ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ`
+          });
+        } catch (err) {
+          // User cancelled share
+        }
+      } else {
+        alert("ನಿಮ್ಮ ಬ್ರೌಸರ್ ನೇರ Share ಬೆಂಬಲಿಸುತ್ತಿಲ್ಲ. Image ಅನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ, ನಂತರ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ.");
+        downloadResultImage();
+      }
+    }, "image/png");
+  }
+</script>
+
+</body>
+</html>
