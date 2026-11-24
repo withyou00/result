@@ -368,6 +368,122 @@
       .result-header .school-name { font-size: 1.15rem; }
       .result-table th, .result-table td { padding: 7px 5px; font-size: 0.86rem; }
     }
+
+    /* ================= NEW: Class bar, save status, history ================= */
+    .class-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .class-bar label { font-weight: 800; color: var(--primary); }
+    .class-bar select {
+      flex: 1 1 180px;
+      padding: 9px 10px;
+      border: 1.5px solid #93c5fd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #fff;
+      color: #0f172a;
+    }
+    .class-bar button { padding: 8px 12px; font-size: 0.88rem; }
+
+    .save-status {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 50;
+    }
+    .save-status.show { opacity: 0.95; }
+    .save-status.error { background: #dc2626; }
+
+    .form-group select {
+      padding: 9px 11px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #334155;
+      cursor: pointer;
+    }
+    .check-row input { width: 18px; height: 18px; }
+
+    .hint {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin: 6px 0 0 0;
+    }
+
+    .empty-note {
+      text-align: center;
+      color: #94a3b8;
+      padding: 14px;
+      font-weight: 600;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .history-table th, .history-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .history-table th { background: #f8fafc; color: #334155; }
+    .history-table button { padding: 5px 9px; font-size: 0.8rem; }
+    .table-scroll { overflow-x: auto; }
+
+    #progress-area {
+      background: #fff;
+      border: 2px solid #1e3a8a;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 0 0 0;
+      width: max-content;
+      min-width: 100%;
+    }
+    .progress-table { width: 100%; border-collapse: collapse; }
+    .progress-table th, .progress-table td {
+      border: 1px solid #e2e8f0;
+      padding: 7px 6px;
+      text-align: center;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+    .progress-table th { background: #f1f5f9; font-weight: 800; }
+    .progress-table td:nth-child(2), .progress-table th:nth-child(2) { text-align: left; }
+    .pct-good { color: #166534; font-weight: 800; }
+    .pct-mid  { color: #a16207; font-weight: 800; }
+    .pct-low  { color: #b91c1c; font-weight: 800; }
+
+    #importFile { display: none; }
   </style>
 </head>
 <body>
@@ -376,55 +492,63 @@
   <!-- 1. Test Details Section -->
   <div class="card">
     <h2 class="section-title">📝 ಪರೀಕ್ಷೆಯ ವಿವರಗಳು (Test Details)</h2>
+
+    <!-- Class selector -->
+    <div class="class-bar">
+      <label for="classSelect">🏫 ತರಗತಿ:</label>
+      <select id="classSelect" onchange="switchClass(this.value)"></select>
+      <button class="btn-success" onclick="addClass()">➕ ಹೊಸ ತರಗತಿ</button>
+      <button class="btn-outline" onclick="renameClass()">✏️ ಹೆಸರು ಬದಲಿಸಿ</button>
+      <button class="btn-danger" onclick="deleteClass()">🗑️ ತರಗತಿ ಅಳಿಸಿ</button>
+    </div>
+
     <div class="form-grid">
       <div class="form-group">
         <label>ಶಾಲೆಯ ಹೆಸರು</label>
-        <input type="text" id="schoolName" placeholder="ಉದಾ: ಸ.ಹಿ.ಪ್ರಾ ಶಾಲೆ, ಬೆಂಗಳೂರು" oninput="updateAll()">
+        <input type="text" id="schoolName" placeholder="ಉದಾ: ಸ.ಹಿ.ಪ್ರಾ ಶಾಲೆ, ಬೆಂಗಳೂರು" oninput="onGlobalField('schoolName', this.value)">
       </div>
       <div class="form-group">
         <label>ಪರೀಕ್ಷೆಯ ಶೀರ್ಷಿಕೆ</label>
-        <input type="text" id="testTitle" value="ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ" oninput="updateAll()">
-      </div>
-      <div class="form-group">
-        <label>ತರಗತಿ (Class)</label>
-        <input type="text" id="className" placeholder="ಉದಾ: 7ನೇ ತರಗತಿ" oninput="updateAll()">
+        <input type="text" id="testTitle" placeholder="ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ" oninput="onGlobalField('testTitle', this.value)">
       </div>
       <div class="form-group">
         <label>ವಿಷಯ (Subject)</label>
-        <input type="text" id="subjectName" placeholder="ಉದಾ: ಗಣಿತ" oninput="updateAll()">
+        <input type="text" id="subjectName" list="subjectList" placeholder="ಉದಾ: ಗಣಿತ" oninput="onClassField('subject', this.value)">
+        <datalist id="subjectList"></datalist>
       </div>
       <div class="form-group">
         <label>ಘಟಕ (Unit)</label>
-        <input type="text" id="unitName" placeholder="ಉದಾ: ಭಿನ್ನರಾಶಿಗಳು" oninput="updateAll()">
+        <input type="text" id="unitName" placeholder="ಉದಾ: ಭಿನ್ನರಾಶಿಗಳು" oninput="onClassField('unit', this.value)">
       </div>
       <div class="form-group">
         <label>ಒಟ್ಟು ಅಂಕಗಳು (Total Marks)</label>
-        <input type="number" id="totalMarks" value="25" min="1" step="0.5" oninput="updateAll()">
+        <input type="number" id="totalMarks" min="1" step="0.5" oninput="onClassField('totalMarks', this.value)">
       </div>
       <div class="form-group">
         <label>ದಿನಾಂಕ (Date)</label>
-        <input type="date" id="testDate" oninput="updateAll()">
+        <input type="date" id="testDate" oninput="onClassField('testDate', this.value)">
       </div>
       <div class="form-group">
         <label>ಶಿಕ್ಷಕರ ಹೆಸರು (ಐಚ್ಛಿಕ)</label>
-        <input type="text" id="teacherName" placeholder="ಶಿಕ್ಷಕರ ಹೆಸರು" oninput="updateAll()">
+        <input type="text" id="teacherName" placeholder="ಶಿಕ್ಷಕರ ಹೆಸರು" oninput="onGlobalField('teacherName', this.value)">
       </div>
     </div>
   </div>
 
   <!-- 2. Student Marks Entry Section -->
   <div class="card">
-    <h2 class="section-title">👨‍🎓 ವಿದ್ಯಾರ್ಥಿಗಳ ಅಂಕ ನಮೂದಿಸಿ</h2>
-    
+    <h2 class="section-title">👨‍🎓 ವಿದ್ಯಾರ್ಥಿಗಳ ಅಂಕ ನಮೂದಿಸಿ — <span id="entryClassLabel"></span></h2>
+
     <div class="btn-row" style="margin-top: 0; margin-bottom: 10px;">
       <button class="btn-outline" onclick="toggleBulkBox()">📋 ಒಟ್ಟಿಗೆ ಹೆಸರುಗಳನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ (Bulk Add)</button>
-      <button class="btn-warning" onclick="clearOnlyMarks()">🧹 ಅಂಕಗಳನ್ನು ಮಾತ್ರ ಅಳಿಸಿ (ಹೊಸ ಟೆಸ್ಟ್‌ಗಾಗಿ)</button>
-      <button class="btn-purple" onclick="sortByMarks()">📊 ಅಂಕಗಳ ಪ್ರಕಾರ ಜೋಡಿಸಿ (Rank Wise)</button>
+      <button class="btn-warning" onclick="clearOnlyMarks()">🧹 ಹೊಸ ಟೆಸ್ಟ್ (ಅಂಕ ಉಳಿಸಿ, ಖಾಲಿ ಮಾಡಿ)</button>
+      <button class="btn-success" onclick="saveTestToHistory(false)">💾 ಈ ಪರೀಕ್ಷೆಯನ್ನು ದಾಖಲೆಗೆ ಉಳಿಸಿ</button>
     </div>
 
     <div id="bulk-box">
       <label style="font-weight:700; font-size:0.9rem;">ಪ್ರತಿ ಸಾಲಿನಲ್ಲಿ ಒಬ್ಬ ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ (Excel/WhatsApp ನಿಂದ):</label>
       <textarea id="bulkNamesInput" placeholder="ರಮೇಶ್&#10;ಸುರೇಶ್&#10;ಕಾವ್ಯ&#10;ಮಂಜುಳಾ"></textarea>
+      <p class="hint">Excel ನಿಂದ ಹೆಸರು + ಅಂಕ ಎರಡೂ ಕಾಲಂ ಕಾಪಿ ಮಾಡಿದರೆ ಅಂಕಗಳೂ ಬರುತ್ತವೆ. "1. ರಮೇಶ್" ನಂತಹ ಕ್ರಮ ಸಂಖ್ಯೆ ತಾನಾಗಿಯೇ ತೆಗೆಯಲ್ಪಡುತ್ತದೆ.</p>
       <div class="btn-row">
         <button class="btn-success" onclick="applyBulkNames(false)">➕ ಪಟ್ಟಿಗೆ ಸೇರಿಸಿ</button>
         <button class="btn-danger" onclick="applyBulkNames(true)">🔄 ಹಳೆಯ ಪಟ್ಟಿ ತೆಗೆದು ಹೊಸದು ಹಾಕಿ</button>
@@ -432,17 +556,20 @@
       </div>
     </div>
 
-    <table class="entry-table">
-      <thead>
-        <tr>
-          <th style="width: 50px;">ಅ.ಸಂ</th>
-          <th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th>
-          <th style="width: 115px;">ಪಡೆದ ಅಂಕ</th>
-          <th style="width: 60px;">ಅಳಿಸಿ</th>
-        </tr>
-      </thead>
-      <tbody id="entryBody"></tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="entry-table">
+        <thead>
+          <tr>
+            <th style="width: 50px;">ಅ.ಸಂ</th>
+            <th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th>
+            <th style="width: 115px;">ಪಡೆದ ಅಂಕ</th>
+            <th style="width: 60px;">ಅಳಿಸಿ</th>
+          </tr>
+        </thead>
+        <tbody id="entryBody"></tbody>
+      </table>
+    </div>
+    <p class="hint">💡 ಅಂಕ ಬರೆದು <b>Enter</b> ಒತ್ತಿದರೆ ಮುಂದಿನ ವಿದ್ಯಾರ್ಥಿಗೆ ಹೋಗುತ್ತದೆ. ಅಂಕ ಖಾಲಿ ಬಿಟ್ಟರೆ "ಗೈರು". ಎಲ್ಲವೂ ತಾನಾಗಿಯೇ ಉಳಿಯುತ್ತದೆ.</p>
 
     <div class="btn-row">
       <button class="btn-primary" onclick="addStudentRow()">➕ ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಸೇರಿಸಿ</button>
@@ -452,7 +579,12 @@
   <!-- 3. Live Result Preview & Image Export -->
   <div class="card">
     <h2 class="section-title">🖼️ ಫಲಿತಾಂಶ ಪಟ್ಟಿ (ಇಮೇಜ್ ಆಗಿ ಶೇರ್ ಮಾಡಲು)</h2>
-    
+
+    <label class="check-row">
+      <input type="checkbox" id="rankOrder" onchange="onGlobalField('rankOrder', this.checked)">
+      📊 ಫಲಿತಾಂಶದಲ್ಲಿ ಅಂಕಗಳ ಪ್ರಕಾರ ಜೋಡಿಸಿ (ಹೆಸರು ಪಟ್ಟಿಯ ಕ್ರಮ ಬದಲಾಗುವುದಿಲ್ಲ)
+    </label>
+
     <div class="preview-wrapper">
       <div id="capture-area">
         <div class="result-header">
@@ -495,79 +627,332 @@
     <div class="share-actions">
       <button class="btn-success" onclick="downloadResultImage()">📥 Image ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (PNG)</button>
       <button class="btn-primary" onclick="shareResultImage()">📲 WhatsApp / Share ಮಾಡಿ</button>
+      <button class="btn-outline" onclick="copyResultText()">📝 ಪಠ್ಯವಾಗಿ ಕಾಪಿ ಮಾಡಿ</button>
+    </div>
+  </div>
+
+  <!-- 4. Test History & Progress -->
+  <div class="card">
+    <h2 class="section-title">📚 ಹಿಂದಿನ ಪರೀಕ್ಷೆಗಳು — <span id="historyClassLabel"></span></h2>
+    <div class="table-scroll">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>ದಿನಾಂಕ</th>
+            <th>ವಿಷಯ</th>
+            <th>ಘಟಕ</th>
+            <th>ಹಾಜರು</th>
+            <th>ಸರಾಸರಿ</th>
+            <th style="width:120px;"></th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title" style="margin-top:22px;">📈 ವಿದ್ಯಾರ್ಥಿಗಳ ಪ್ರಗತಿ ವರದಿ</h2>
+    <div class="form-grid" style="max-width:420px;">
+      <div class="form-group">
+        <label>ವಿಷಯ ಆಯ್ಕೆಮಾಡಿ</label>
+        <select id="progressSubject" onchange="renderProgress()"></select>
+      </div>
+    </div>
+    <div class="preview-wrapper">
+      <div id="progress-area"></div>
+    </div>
+    <div class="share-actions">
+      <button class="btn-success" onclick="downloadProgressImage()">📥 ಪ್ರಗತಿ ವರದಿ Image (PNG)</button>
+    </div>
+  </div>
+
+  <!-- 5. Backup -->
+  <div class="card">
+    <h2 class="section-title">🛡️ ಬ್ಯಾಕಪ್ (Backup)</h2>
+    <p class="hint" style="margin-top:0;">ಎಲ್ಲಾ ಡೇಟಾ ಈ ಮೊಬೈಲ್/ಕಂಪ್ಯೂಟರ್‌ನ ಬ್ರೌಸರ್‌ನಲ್ಲೇ ತಾನಾಗಿಯೇ ಉಳಿಯುತ್ತದೆ. ಬ್ರೌಸರ್ ಡೇಟಾ ಅಳಿಸಿದರೆ ಅಥವಾ ಬೇರೆ ಫೋನ್‌ಗೆ ಹೋದರೆ ಕಳೆದುಹೋಗದಂತೆ ಆಗಾಗ ಬ್ಯಾಕಪ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಟ್ಟುಕೊಳ್ಳಿ.</p>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="exportBackup()">⬇️ ಬ್ಯಾಕಪ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್</button>
+      <button class="btn-outline" onclick="document.getElementById('importFile').click()">⬆️ ಬ್ಯಾಕಪ್‌ನಿಂದ ಮರಳಿ ತನ್ನಿ</button>
+      <input type="file" id="importFile" accept=".json,application/json" onchange="importBackup(this)">
     </div>
   </div>
 </div>
 
+<div class="save-status" id="saveStatus"></div>
+
 <script>
-  let students = [
-    { name: "ಕಾವ್ಯ", marks: "25" },
-    { name: "ರಮೇಶ್", marks: "24" },
-    { name: "ಮಂಜುಳಾ", marks: "22" },
-    { name: "ಸುರೇಶ್", marks: "19" }
-  ];
+  const STORAGE_KEY = "kannadaTestResultData_v2";
+  const OLD_STORAGE_KEY = "kannadaTestResultData_v1";
+  const DEFAULT_TITLE = "ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ";
 
-  // Load saved data from localStorage
-  window.onload = function() {
-    const saved = localStorage.getItem("kannadaTestResultData_v1");
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.schoolName !== undefined) document.getElementById("schoolName").value = data.schoolName;
-        if (data.testTitle !== undefined) document.getElementById("testTitle").value = data.testTitle;
-        if (data.className !== undefined) document.getElementById("className").value = data.className;
-        if (data.subjectName !== undefined) document.getElementById("subjectName").value = data.subjectName;
-        if (data.unitName !== undefined) document.getElementById("unitName").value = data.unitName;
-        if (data.totalMarks !== undefined) document.getElementById("totalMarks").value = data.totalMarks;
-        if (data.teacherName !== undefined) document.getElementById("teacherName").value = data.teacherName;
-        if (Array.isArray(data.students) && data.students.length > 0) students = data.students;
-      } catch (e) {}
-    }
-
-    // Set today's date if empty
-    const dateInput = document.getElementById("testDate");
-    if (!dateInput.value) {
-      dateInput.value = new Date().toISOString().split('T')[0];
-    }
-
-    renderEntryTable();
-    updateAll();
+  let state = {
+    schoolName: "",
+    testTitle: DEFAULT_TITLE,
+    teacherName: "",
+    rankOrder: false,
+    activeClassId: null,
+    classes: [],
+    history: []
   };
 
-  function saveToStorage() {
-    const data = {
-      schoolName: document.getElementById("schoolName").value,
-      testTitle: document.getElementById("testTitle").value,
-      className: document.getElementById("className").value,
-      subjectName: document.getElementById("subjectName").value,
-      unitName: document.getElementById("unitName").value,
-      totalMarks: document.getElementById("totalMarks").value,
-      teacherName: document.getElementById("teacherName").value,
-      students: students
-    };
-    localStorage.setItem("kannadaTestResultData_v1", JSON.stringify(data));
+  // ---------------- Helpers ----------------
+  function newId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
+  function todayStr() {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+
+  function fmtDate(raw) {
+    if (!raw) return "-";
+    const p = raw.split("-");
+    return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : raw;
+  }
+
+  function makeClass(name, students) {
+    return {
+      id: newId(),
+      name: name,
+      subject: "",
+      unit: "",
+      totalMarks: "25",
+      testDate: todayStr(),
+      students: students || []
+    };
+  }
+
+  function cleanStudents(list) {
+    if (!Array.isArray(list)) return [];
+    return list.map(s => ({
+      name: (s && s.name != null) ? String(s.name) : "",
+      marks: (s && s.marks != null) ? String(s.marks) : ""
+    }));
+  }
+
+  function cur() {
+    return state.classes.find(c => c.id === state.activeClassId) || state.classes[0];
+  }
+
+  function hasMark(m) {
+    return m !== "" && m != null && !isNaN(parseFloat(m));
+  }
+
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return "";
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // ---------------- Load / Save ----------------
+  function loadState() {
+    let raw = null;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+
+    if (raw) {
+      try {
+        const d = JSON.parse(raw);
+        if (d && Array.isArray(d.classes)) state = Object.assign(state, d);
+      } catch (e) {}
+    } else {
+      // First time on new version: bring over the old (v1) data so no names are lost
+      let old = null;
+      try { old = JSON.parse(localStorage.getItem(OLD_STORAGE_KEY) || "null"); } catch (e) {}
+      if (old && typeof old === "object") {
+        if (old.schoolName !== undefined) state.schoolName = old.schoolName;
+        if (old.testTitle !== undefined) state.testTitle = old.testTitle;
+        if (old.teacherName !== undefined) state.teacherName = old.teacherName;
+        const c = makeClass((old.className || "").trim() || "ತರಗತಿ 1", cleanStudents(old.students));
+        if (old.subjectName !== undefined) c.subject = old.subjectName;
+        if (old.unitName !== undefined) c.unit = old.unitName;
+        if (old.totalMarks !== undefined && old.totalMarks !== "") c.totalMarks = String(old.totalMarks);
+        state.classes = [c];
+        state.activeClassId = c.id;
+      }
+    }
+
+    // Safety checks
+    if (!Array.isArray(state.classes)) state.classes = [];
+    if (!Array.isArray(state.history)) state.history = [];
+    state.classes.forEach(c => {
+      if (!c.id) c.id = newId();
+      c.name = c.name || "ತರಗತಿ";
+      c.students = cleanStudents(c.students);
+      if (c.totalMarks == null) c.totalMarks = "25";
+      if (c.subject == null) c.subject = "";
+      if (c.unit == null) c.unit = "";
+      if (!c.testDate) c.testDate = todayStr();
+    });
+    if (state.classes.length === 0) {
+      const c = makeClass("ತರಗತಿ 1", [{ name: "", marks: "" }]);
+      state.classes.push(c);
+    }
+    if (!state.classes.find(c => c.id === state.activeClassId)) {
+      state.activeClassId = state.classes[0].id;
+    }
+    saveToStorage();
+  }
+
+  let saveTimer = null;
+  function saveToStorage() {
+    const status = document.getElementById("saveStatus");
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const t = new Date();
+      status.classList.remove("error");
+      status.textContent = `✅ ಉಳಿಸಲಾಗಿದೆ ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
+      status.classList.add("show");
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => status.classList.remove("show"), 1800);
+    } catch (e) {
+      status.classList.add("error");
+      status.textContent = "⚠️ ಉಳಿಸಲು ಆಗಲಿಲ್ಲ! ಬ್ಯಾಕಪ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ";
+      clearTimeout(saveTimer);
+      status.classList.add("show");
+    }
+  }
+
+  // ---------------- Render everything ----------------
+  function refreshAll() {
+    renderClassSelect();
+    fillForm();
+    renderEntryTable();
+    updatePreview();
+    renderHistory();
+    renderProgressSubjects();
+    renderProgress();
+  }
+
+  function renderClassSelect() {
+    const sel = document.getElementById("classSelect");
+    sel.innerHTML = "";
+    state.classes.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      const count = c.students.filter(s => s.name.trim()).length;
+      opt.textContent = `${c.name} (${count} ವಿದ್ಯಾರ್ಥಿಗಳು)`;
+      if (c.id === state.activeClassId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    document.getElementById("entryClassLabel").textContent = cur().name;
+    document.getElementById("historyClassLabel").textContent = cur().name;
+  }
+
+  function fillForm() {
+    const c = cur();
+    document.getElementById("schoolName").value = state.schoolName || "";
+    document.getElementById("testTitle").value = state.testTitle || "";
+    document.getElementById("teacherName").value = state.teacherName || "";
+    document.getElementById("rankOrder").checked = !!state.rankOrder;
+    document.getElementById("subjectName").value = c.subject || "";
+    document.getElementById("unitName").value = c.unit || "";
+    document.getElementById("totalMarks").value = c.totalMarks || "";
+    document.getElementById("testDate").value = c.testDate || "";
+
+    // Subject suggestions from earlier tests of this class
+    const subjects = [...new Set(state.history.filter(h => h.classId === c.id && h.subject).map(h => h.subject))];
+    document.getElementById("subjectList").innerHTML =
+      subjects.map(s => `<option value="${escapeHtml(s)}"></option>`).join("");
+  }
+
+  // ---------------- Field changes ----------------
+  function onGlobalField(field, value) {
+    state[field] = value;
+    updatePreview();
+    saveToStorage();
+  }
+
+  function onClassField(field, value) {
+    cur()[field] = value;
+    if (field === "totalMarks") refreshMarkHighlights();
+    updatePreview();
+    saveToStorage();
+  }
+
+  // ---------------- Classes ----------------
+  function switchClass(id) {
+    state.activeClassId = id;
+    saveToStorage();
+    refreshAll();
+  }
+
+  function addClass() {
+    const name = (prompt("ಹೊಸ ತರಗತಿಯ ಹೆಸರು ಬರೆಯಿರಿ (ಉದಾ: 6ನೇ ತರಗತಿ ಅ ವಿಭಾಗ):") || "").trim();
+    if (!name) return;
+    if (state.classes.some(c => c.name === name)) {
+      alert("ಈ ಹೆಸರಿನ ತರಗತಿ ಈಗಾಗಲೇ ಇದೆ.");
+      return;
+    }
+    const c = makeClass(name, [{ name: "", marks: "" }]);
+    const prev = cur();
+    if (prev) c.totalMarks = prev.totalMarks || "25";
+    state.classes.push(c);
+    state.activeClassId = c.id;
+    saveToStorage();
+    refreshAll();
+    alert(`"${name}" ತರಗತಿ ಸೇರಿಸಲಾಗಿದೆ. ಈಗ ವಿದ್ಯಾರ್ಥಿಗಳ ಹೆಸರುಗಳನ್ನು ಸೇರಿಸಿ (Bulk Add ಬಳಸಬಹುದು).`);
+  }
+
+  function renameClass() {
+    const c = cur();
+    const name = (prompt("ತರಗತಿಯ ಹೊಸ ಹೆಸರು:", c.name) || "").trim();
+    if (!name || name === c.name) return;
+    if (state.classes.some(x => x.name === name && x.id !== c.id)) {
+      alert("ಈ ಹೆಸರಿನ ತರಗತಿ ಈಗಾಗಲೇ ಇದೆ.");
+      return;
+    }
+    c.name = name;
+    state.history.forEach(h => { if (h.classId === c.id) h.className = name; });
+    saveToStorage();
+    refreshAll();
+  }
+
+  function deleteClass() {
+    if (state.classes.length <= 1) {
+      alert("ಕನಿಷ್ಠ ಒಂದು ತರಗತಿ ಇರಬೇಕು. ಹೆಸರು ಬದಲಿಸಲು ✏️ ಬಳಸಿ.");
+      return;
+    }
+    const c = cur();
+    const hCount = state.history.filter(h => h.classId === c.id).length;
+    const msg = `"${c.name}" ತರಗತಿಯನ್ನು ಅದರ ಎಲ್ಲಾ ವಿದ್ಯಾರ್ಥಿಗಳು` +
+      (hCount ? ` ಮತ್ತು ${hCount} ಹಳೆಯ ಪರೀಕ್ಷೆಗಳ` : "") +
+      ` ಸಹಿತ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಬೇಕೆ?`;
+    if (!confirm(msg)) return;
+    state.classes = state.classes.filter(x => x.id !== c.id);
+    state.history = state.history.filter(h => h.classId !== c.id);
+    state.activeClassId = state.classes[0].id;
+    saveToStorage();
+    refreshAll();
+  }
+
+  // ---------------- Student entry ----------------
   function renderEntryTable() {
+    const c = cur();
     const tbody = document.getElementById("entryBody");
-    const total = parseFloat(document.getElementById("totalMarks").value) || 0;
     tbody.innerHTML = "";
 
-    students.forEach((stu, index) => {
-      const m = parseFloat(stu.marks);
-      const isInvalid = !isNaN(m) && total > 0 && m > total;
+    if (c.students.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-note">ಇನ್ನೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಲ್ಲ — ಕೆಳಗಿನ ➕ ಅಥವಾ Bulk Add ಬಳಸಿ</td></tr>`;
+      return;
+    }
 
+    c.students.forEach((stu, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td style="font-weight:700; text-align:center;">${index + 1}</td>
         <td>
-          <input type="text" value="${escapeHtml(stu.name)}" placeholder="ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು" 
-            oninput="updateStudent(${index}, 'name', this.value)">
+          <input type="text" class="name-input" data-idx="${index}" value="${escapeHtml(stu.name)}" placeholder="ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು"
+            oninput="updateStudent(${index}, 'name', this.value)" onkeydown="entryKey(event, ${index}, 'name')">
         </td>
         <td>
-          <input type="number" step="0.5" min="0" value="${escapeHtml(stu.marks)}" placeholder="ಅಂಕ (ಖಾಲಿ=ಗೈರು)"
-            class="${isInvalid ? 'invalid-mark' : ''}"
-            oninput="updateStudent(${index}, 'marks', this.value, this)">
+          <input type="number" inputmode="decimal" class="mark-input" data-idx="${index}" step="0.5" min="0" value="${escapeHtml(stu.marks)}" placeholder="ಖಾಲಿ=ಗೈರು"
+            oninput="updateStudent(${index}, 'marks', this.value)" onkeydown="entryKey(event, ${index}, 'marks')">
         </td>
         <td style="text-align:center;">
           <button class="btn-danger" onclick="removeStudent(${index})" title="ಅಳಿಸಿ">🗑️</button>
@@ -575,114 +960,164 @@
       `;
       tbody.appendChild(tr);
     });
+    refreshMarkHighlights();
   }
 
-  function updateStudent(index, field, value, inputEl) {
-    students[index][field] = value;
-    if (field === 'marks' && inputEl) {
-      const total = parseFloat(document.getElementById("totalMarks").value) || 0;
-      const m = parseFloat(value);
-      if (!isNaN(m) && total > 0 && m > total) {
-        inputEl.classList.add("invalid-mark");
-      } else {
-        inputEl.classList.remove("invalid-mark");
-      }
+  function refreshMarkHighlights() {
+    const total = parseFloat(cur().totalMarks) || 0;
+    document.querySelectorAll("#entryBody .mark-input").forEach(inp => {
+      const m = parseFloat(inp.value);
+      inp.classList.toggle("invalid-mark", !isNaN(m) && (m < 0 || (total > 0 && m > total)));
+    });
+  }
+
+  function entryKey(e, index, field) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (field === "name") {
+      const mk = document.querySelector(`#entryBody .mark-input[data-idx="${index}"]`);
+      if (mk) mk.focus();
+      return;
     }
+    const next = document.querySelector(`#entryBody .mark-input[data-idx="${index + 1}"]`);
+    if (next) { next.focus(); next.select && next.select(); }
+    else e.target.blur();
+  }
+
+  let nameRefreshTimer = null;
+  function updateStudent(index, field, value) {
+    const c = cur();
+    if (!c.students[index]) return;
+    c.students[index][field] = value;
+    if (field === "marks") refreshMarkHighlights();
     updatePreview();
     saveToStorage();
+    if (field === "name") {
+      clearTimeout(nameRefreshTimer);
+      nameRefreshTimer = setTimeout(renderClassSelect, 600); // update student count in dropdown
+    }
   }
 
   function addStudentRow() {
-    students.push({ name: "", marks: "" });
+    cur().students.push({ name: "", marks: "" });
     renderEntryTable();
     updatePreview();
     saveToStorage();
-    // Focus newly added name input
     const inputs = document.querySelectorAll("#entryBody tr:last-child input");
     if (inputs.length > 0) inputs[0].focus();
   }
 
   function removeStudent(index) {
-    students.splice(index, 1);
+    const c = cur();
+    const stu = c.students[index];
+    if (stu && stu.name.trim() && !confirm(`"${stu.name}" ಅವರನ್ನು ಪಟ್ಟಿಯಿಂದ ಅಳಿಸಬೇಕೆ?`)) return;
+    c.students.splice(index, 1);
     renderEntryTable();
+    renderClassSelect();
     updatePreview();
     saveToStorage();
   }
 
   function clearOnlyMarks() {
-    if (confirm("ಎಲ್ಲಾ ವಿದ್ಯಾರ್ಥಿಗಳ ಅಂಕಗಳನ್ನು ಮಾತ್ರ ಅಳಿಸಬೇಕೆ? (ಹೆಸರುಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ)")) {
-      students = students.map(s => ({ name: s.name, marks: "" }));
-      renderEntryTable();
-      updatePreview();
-      saveToStorage();
+    const c = cur();
+    const anyMarks = c.students.some(s => hasMark(s.marks));
+    if (!anyMarks) {
+      alert("ಅಂಕಗಳು ಈಗಾಗಲೇ ಖಾಲಿ ಇವೆ. ಹೊಸ ಟೆಸ್ಟ್‌ನ ಅಂಕ ಬರೆಯಬಹುದು.");
+      return;
     }
-  }
-
-  function sortByMarks() {
-    students.sort((a, b) => {
-      const mA = a.marks === "" ? -1 : parseFloat(a.marks);
-      const mB = b.marks === "" ? -1 : parseFloat(b.marks);
-      return mB - mA;
-    });
-    renderEntryTable();
-    updatePreview();
+    if (!confirm("ಈಗಿನ ಅಂಕಗಳನ್ನು 'ಹಿಂದಿನ ಪರೀಕ್ಷೆಗಳು' ದಾಖಲೆಗೆ ಉಳಿಸಿ, ನಂತರ ಖಾಲಿ ಮಾಡಲಾಗುವುದು. ಹೆಸರುಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ. ಮುಂದುವರಿಸಬೇಕೆ?")) return;
+    saveTestToHistory(true);
+    c.students = c.students.map(s => ({ name: s.name, marks: "" }));
+    c.unit = "";
+    c.testDate = todayStr();
     saveToStorage();
+    refreshAll();
+    document.getElementById("unitName").focus();
   }
 
   function toggleBulkBox() {
     const box = document.getElementById("bulk-box");
     box.style.display = box.style.display === "block" ? "none" : "block";
+    if (box.style.display === "block") document.getElementById("bulkNamesInput").focus();
+  }
+
+  // Accepts: "ರಮೇಶ್", "1. ರಮೇಶ್", "ರಮೇಶ್<TAB>23", "1<TAB>ರಮೇಶ್<TAB>23", "ರಮೇಶ್ 23"
+  function parseBulkLine(line) {
+    const isNum = s => /^\d+(\.\d+)?$/.test(s);
+    let name = "", marks = "";
+    if (line.includes("\t")) {
+      const parts = line.split("\t").map(p => p.trim()).filter(p => p !== "");
+      const nameIdx = parts.findIndex(p => !isNum(p));
+      if (nameIdx === -1) return null;
+      name = parts[nameIdx];
+      const after = parts.slice(nameIdx + 1).filter(isNum);
+      if (after.length) marks = after[after.length - 1];
+    } else {
+      name = line.replace(/^\d+\s*[.)\-:]\s*/, "").trim();
+      const m = name.match(/^(.*\D)\s+(\d+(?:\.\d+)?)$/);
+      if (m) { name = m[1].trim(); marks = m[2]; }
+    }
+    return name ? { name, marks } : null;
   }
 
   function applyBulkNames(replaceAll) {
     const text = document.getElementById("bulkNamesInput").value;
-    const names = text.split(/\r?\n/).map(n => n.trim()).filter(n => n.length > 0);
-    if (names.length === 0) {
+    const entries = text.split(/\r?\n/).map(l => l.trim()).filter(l => l).map(parseBulkLine).filter(Boolean);
+    if (entries.length === 0) {
       alert("ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ಹೆಸರನ್ನಾದರೂ ನಮೂದಿಸಿ.");
       return;
     }
-    const newEntries = names.map(name => ({ name: name, marks: "" }));
+    const c = cur();
     if (replaceAll) {
-      students = newEntries;
+      if (c.students.some(s => s.name.trim()) &&
+          !confirm(`"${c.name}" ತರಗತಿಯ ಹಳೆಯ ಹೆಸರುಗಳನ್ನು ತೆಗೆದು ಈ ${entries.length} ಹೊಸ ಹೆಸರುಗಳನ್ನು ಹಾಕಬೇಕೆ?`)) return;
+      c.students = entries;
     } else {
-      students = students.concat(newEntries);
+      // remove fully blank rows before appending
+      c.students = c.students.filter(s => s.name.trim() || hasMark(s.marks)).concat(entries);
     }
     document.getElementById("bulkNamesInput").value = "";
     toggleBulkBox();
     renderEntryTable();
+    renderClassSelect();
     updatePreview();
     saveToStorage();
   }
 
-  function updateAll() {
-    renderEntryTable(); // update invalid mark highlight if totalMarks changed
-    updatePreview();
-    saveToStorage();
+  // ---------------- Result preview ----------------
+  function computeRows(c) {
+    const total = parseFloat(c.totalMarks) || 0;
+    const rows = c.students
+      .map((s, i) => ({ name: s.name, marks: s.marks, roll: i }))
+      .filter(s => s.name.trim() || s.marks !== "");
+
+    const validScores = rows
+      .filter(r => hasMark(r.marks))
+      .map(r => parseFloat(r.marks))
+      .filter(m => m >= 0 && (total <= 0 || m <= total));
+    const uniqueSorted = [...new Set(validScores)].sort((a, b) => b - a);
+
+    rows.forEach(r => {
+      r.has = hasMark(r.marks);
+      r.score = r.has ? parseFloat(r.marks) : null;
+      r.invalid = r.has && (r.score < 0 || (total > 0 && r.score > total));
+      r.rank = (r.has && !r.invalid) ? uniqueSorted.indexOf(r.score) : -1;
+    });
+    return { rows, total, validScores };
   }
 
   function updatePreview() {
-    const school = document.getElementById("schoolName").value.trim() || "ಶಾಲೆಯ ಹೆಸರು";
-    const title = document.getElementById("testTitle").value.trim() || "ಘಟಕ ಪರೀಕ್ಷೆ ಫಲಿತಾಂಶ";
-    const cls = document.getElementById("className").value.trim() || "-";
-    const subj = document.getElementById("subjectName").value.trim() || "-";
-    const unit = document.getElementById("unitName").value.trim() || "-";
-    const total = parseFloat(document.getElementById("totalMarks").value) || 0;
-    const rawDate = document.getElementById("testDate").value;
-    const teacher = document.getElementById("teacherName").value.trim();
+    const c = cur();
+    const school = (state.schoolName || "").trim() || "ಶಾಲೆಯ ಹೆಸರು";
+    const title = (state.testTitle || "").trim() || DEFAULT_TITLE;
+    const teacher = (state.teacherName || "").trim();
 
     document.getElementById("prevSchool").textContent = school;
     document.getElementById("prevTitle").textContent = title;
-    document.getElementById("prevClass").textContent = cls;
-    document.getElementById("prevSubject").textContent = subj;
-    document.getElementById("prevUnit").textContent = unit;
-    document.getElementById("prevTotal").textContent = total > 0 ? total : "-";
-
-    if (rawDate) {
-      const parts = rawDate.split("-");
-      document.getElementById("prevDate").textContent = `${parts[2]}-${parts[1]}-${parts[0]}`;
-    } else {
-      document.getElementById("prevDate").textContent = "-";
-    }
+    document.getElementById("prevClass").textContent = c.name || "-";
+    document.getElementById("prevSubject").textContent = (c.subject || "").trim() || "-";
+    document.getElementById("prevUnit").textContent = (c.unit || "").trim() || "-";
+    document.getElementById("prevDate").textContent = fmtDate(c.testDate);
 
     const teacherEl = document.getElementById("prevTeacher");
     if (teacher) {
@@ -692,54 +1127,39 @@
       teacherEl.style.display = "none";
     }
 
-    // Calculate valid scores for Ranking
-    // Logic: Out-of-out or highest distinct score = 1st, next distinct = 2nd, next distinct = 3rd
-    const validScores = students
-      .map(s => (s.marks !== "" && !isNaN(parseFloat(s.marks))) ? parseFloat(s.marks) : null)
-      .filter(m => m !== null && (total <= 0 || m <= total));
+    const { rows, total, validScores } = computeRows(c);
+    document.getElementById("prevTotal").textContent = total > 0 ? total : "-";
 
-    // Unique scores sorted descending
-    const uniqueSorted = [...new Set(validScores)].sort((a, b) => b - a);
+    let ordered = rows.slice();
+    if (state.rankOrder) {
+      ordered.sort((a, b) => {
+        const sa = (a.has && !a.invalid) ? a.score : -1;
+        const sb = (b.has && !b.invalid) ? b.score : -1;
+        return sb - sa || a.roll - b.roll;
+      });
+    }
 
     const previewBody = document.getElementById("previewBody");
     previewBody.innerHTML = "";
 
-    let presentCount = 0;
-    let totalValidStudents = 0;
-
-    students.forEach((stu, idx) => {
-      if (!stu.name.trim() && stu.marks === "") return;
-      totalValidStudents++;
-
-      const hasMark = stu.marks !== "" && !isNaN(parseFloat(stu.marks));
-      const score = hasMark ? parseFloat(stu.marks) : null;
-      if (hasMark) presentCount++;
-
-      let rankIndex = -1;
-      if (hasMark && (total <= 0 || score <= total)) {
-        rankIndex = uniqueSorted.indexOf(score);
-      }
-
+    ordered.forEach((r, i) => {
       let rowClass = "";
-      let rankHtml = "-";
-      let fullMarksBadge = "";
+      let rankHtml;
+      const fullBadge = (r.has && !r.invalid && total > 0 && r.score === total)
+        ? `<span class="badge-full">⭐ ಪೂರ್ಣ ಅಂಕ</span>` : "";
 
-      if (hasMark && total > 0 && score === total) {
-        fullMarksBadge = `<span class="badge-full">⭐ ಪೂರ್ಣ ಅಂಕ</span>`;
-      }
-
-      if (rankIndex === 0) {
+      if (r.rank === 0) {
         rowClass = "rank-1";
         rankHtml = `<span class="rank-badge badge-1">🥇 ಪ್ರಥಮ</span>`;
-      } else if (rankIndex === 1) {
+      } else if (r.rank === 1) {
         rowClass = "rank-2";
         rankHtml = `<span class="rank-badge badge-2">🥈 ದ್ವಿತೀಯ</span>`;
-      } else if (rankIndex === 2) {
+      } else if (r.rank === 2) {
         rowClass = "rank-3";
         rankHtml = `<span class="rank-badge badge-3">🥉 ತೃತೀಯ</span>`;
-      } else if (!hasMark) {
+      } else if (!r.has) {
         rankHtml = `<span style="color:#94a3b8; font-size:0.85rem;">ಗೈರು</span>`;
-      } else if (total > 0 && score > total) {
+      } else if (r.invalid) {
         rankHtml = `<span style="color:#ef4444; font-size:0.82rem;">ತಪ್ಪು ಅಂಕ</span>`;
       } else {
         rankHtml = `<span style="color:#64748b;">-</span>`;
@@ -747,79 +1167,381 @@
 
       const tr = document.createElement("tr");
       if (rowClass) tr.className = rowClass;
-
       tr.innerHTML = `
-        <td>${totalValidStudents}</td>
-        <td>${escapeHtml(stu.name || "ಹೆಸರಿಲ್ಲ")}${fullMarksBadge}</td>
-        <td>${hasMark ? score + (total > 0 ? " / " + total : "") : "-"}</td>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(r.name || "ಹೆಸರಿಲ್ಲ")}${fullBadge}</td>
+        <td>${r.has ? r.score + (total > 0 ? " / " + total : "") : "-"}</td>
         <td>${rankHtml}</td>
       `;
       previewBody.appendChild(tr);
     });
 
-    const absentCount = totalValidStudents - presentCount;
-    document.getElementById("summaryStats").textContent =
-      `ಒಟ್ಟು: ${totalValidStudents} | ಹಾಜರು: ${presentCount} | ಗೈರು: ${absentCount}`;
+    if (ordered.length === 0) {
+      previewBody.innerHTML = `<tr><td colspan="4" class="empty-note">ವಿದ್ಯಾರ್ಥಿಗಳ ಹೆಸರು ಸೇರಿಸಿದಾಗ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ</td></tr>`;
+    }
+
+    const present = rows.filter(r => r.has).length;
+    const absent = rows.length - present;
+    let stats = `ಒಟ್ಟು: ${rows.length} | ಹಾಜರು: ${present} | ಗೈರು: ${absent}`;
+    if (validScores.length) {
+      const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+      stats += ` | ಸರಾಸರಿ: ${round1(avg)}`;
+      if (total > 0) stats += ` (${Math.round(avg / total * 100)}%)`;
+    }
+    document.getElementById("summaryStats").textContent = stats;
   }
 
-  function escapeHtml(text) {
-    if (text === null || text === undefined) return "";
-    return String(text)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+  function round1(n) { return Math.round(n * 10) / 10; }
+
+  // ---------------- Copy as text ----------------
+  function copyResultText() {
+    const c = cur();
+    const { rows, total } = computeRows(c);
+    let ordered = rows.slice();
+    if (state.rankOrder) {
+      ordered.sort((a, b) => ((b.has && !b.invalid) ? b.score : -1) - ((a.has && !a.invalid) ? a.score : -1) || a.roll - b.roll);
+    }
+    const medal = ["🥇", "🥈", "🥉"];
+    let txt = `*${(state.schoolName || "").trim() || "ಶಾಲೆ"}*\n`;
+    txt += `${(state.testTitle || "").trim() || DEFAULT_TITLE}\n`;
+    txt += `ತರಗತಿ: ${c.name} | ವಿಷಯ: ${c.subject || "-"} | ಘಟಕ: ${c.unit || "-"}\n`;
+    txt += `ಒಟ್ಟು ಅಂಕ: ${total || "-"} | ದಿನಾಂಕ: ${fmtDate(c.testDate)}\n\n`;
+    ordered.forEach((r, i) => {
+      const m = r.has ? `${r.score}${total > 0 ? "/" + total : ""}` : "ಗೈರು";
+      txt += `${i + 1}. ${r.name || "ಹೆಸರಿಲ್ಲ"} - ${m}${r.rank >= 0 && r.rank < 3 ? " " + medal[r.rank] : ""}\n`;
+    });
+    copyText(txt.trim());
   }
 
-  async function generateCanvas() {
+  function copyText(txt) {
+    const done = () => alert("✅ ಫಲಿತಾಂಶ ಕಾಪಿ ಆಗಿದೆ. WhatsApp ನಲ್ಲಿ Paste ಮಾಡಿ.");
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
+    } else {
+      fallbackCopy(txt, done);
+    }
+  }
+
+  function fallbackCopy(txt, done) {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { prompt("ಕಾಪಿ ಮಾಡಿ:", txt); }
+    document.body.removeChild(ta);
+  }
+
+  // ---------------- History ----------------
+  function saveTestToHistory(silent) {
+    const c = cur();
+    const results = c.students
+      .filter(s => s.name.trim() || s.marks !== "")
+      .map(s => ({ name: s.name, marks: s.marks }));
+    if (!results.some(r => hasMark(r.marks))) {
+      if (!silent) alert("ಉಳಿಸಲು ಯಾವುದೇ ಅಂಕಗಳಿಲ್ಲ.");
+      return false;
+    }
+    const entry = {
+      id: newId(),
+      classId: c.id,
+      className: c.name,
+      title: (state.testTitle || "").trim() || DEFAULT_TITLE,
+      subject: (c.subject || "").trim(),
+      unit: (c.unit || "").trim(),
+      total: c.totalMarks,
+      date: c.testDate,
+      savedAt: Date.now(),
+      results: results
+    };
+    // Same class + subject + unit + date = same test → update instead of duplicating
+    const idx = state.history.findIndex(h =>
+      h.classId === entry.classId && h.subject === entry.subject &&
+      h.unit === entry.unit && h.date === entry.date && h.title === entry.title);
+    if (idx >= 0) {
+      entry.id = state.history[idx].id;
+      state.history[idx] = entry;
+    } else {
+      state.history.push(entry);
+    }
+    saveToStorage();
+    renderHistory();
+    renderProgressSubjects();
+    renderProgress();
+    fillForm();
+    if (!silent) alert(idx >= 0 ? "✅ ಈ ಪರೀಕ್ಷೆಯ ದಾಖಲೆ ನವೀಕರಿಸಲಾಗಿದೆ." : "✅ ಪರೀಕ್ಷೆ ದಾಖಲೆಗೆ ಉಳಿಸಲಾಗಿದೆ.");
+    return true;
+  }
+
+  function historyStats(h) {
+    const total = parseFloat(h.total) || 0;
+    const scores = h.results.filter(r => hasMark(r.marks)).map(r => parseFloat(r.marks));
+    const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+    return { present: scores.length, count: h.results.length, avg, total };
+  }
+
+  function classHistory(classId) {
+    return state.history
+      .filter(h => h.classId === classId)
+      .sort((a, b) => (a.date || "").localeCompare(b.date || "") || a.savedAt - b.savedAt);
+  }
+
+  function renderHistory() {
+    const list = classHistory(cur().id).slice().reverse();
+    const tbody = document.getElementById("historyBody");
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-note">ಇನ್ನೂ ಯಾವುದೇ ಪರೀಕ್ಷೆ ಉಳಿಸಿಲ್ಲ. "💾 ದಾಖಲೆಗೆ ಉಳಿಸಿ" ಅಥವಾ "🧹 ಹೊಸ ಟೆಸ್ಟ್" ಒತ್ತಿದಾಗ ಇಲ್ಲಿ ಸೇರುತ್ತದೆ.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(h => {
+      const s = historyStats(h);
+      const avgTxt = s.avg == null ? "-" :
+        (s.total > 0 ? `${round1(s.avg)}/${s.total} (${Math.round(s.avg / s.total * 100)}%)` : round1(s.avg));
+      return `<tr>
+        <td style="white-space:nowrap;">${fmtDate(h.date)}</td>
+        <td>${escapeHtml(h.subject || "-")}</td>
+        <td>${escapeHtml(h.unit || "-")}</td>
+        <td>${s.present}/${s.count}</td>
+        <td>${avgTxt}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-primary" onclick="openHistory('${h.id}')">👁️ ತೆರೆ</button>
+          <button class="btn-danger" onclick="deleteHistory('${h.id}')">🗑️</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  function openHistory(id) {
+    const h = state.history.find(x => x.id === id);
+    if (!h) return;
+    const c = cur();
+    if (c.students.some(s => hasMark(s.marks))) {
+      // Keep current marks safe before loading the old test
+      saveTestToHistory(true);
+    }
+    // Match by name; keep the class name-list order, add any names that are missing
+    const byName = {};
+    h.results.forEach(r => { byName[r.name.trim()] = r.marks; });
+    const used = new Set();
+    c.students = c.students.map(s => {
+      const key = s.name.trim();
+      if (key && key in byName) { used.add(key); return { name: s.name, marks: byName[key] }; }
+      return { name: s.name, marks: "" };
+    });
+    h.results.forEach(r => {
+      if (!used.has(r.name.trim()) && r.name.trim()) c.students.push({ name: r.name, marks: r.marks });
+    });
+    c.subject = h.subject;
+    c.unit = h.unit;
+    c.totalMarks = h.total;
+    c.testDate = h.date;
+    state.testTitle = h.title || state.testTitle;
+    saveToStorage();
+    refreshAll();
+    document.getElementById("capture-area").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function deleteHistory(id) {
+    const h = state.history.find(x => x.id === id);
+    if (!h) return;
+    if (!confirm(`${fmtDate(h.date)} ರ "${h.subject || ""} ${h.unit || ""}" ಪರೀಕ್ಷೆಯ ದಾಖಲೆಯನ್ನು ಅಳಿಸಬೇಕೆ?`)) return;
+    state.history = state.history.filter(x => x.id !== id);
+    saveToStorage();
+    renderHistory();
+    renderProgressSubjects();
+    renderProgress();
+  }
+
+  // ---------------- Progress report ----------------
+  function renderProgressSubjects() {
+    const sel = document.getElementById("progressSubject");
+    const prev = sel.value;
+    const subjects = [...new Set(classHistory(cur().id).map(h => h.subject || "-"))];
+    sel.innerHTML = `<option value="__all">ಎಲ್ಲಾ ವಿಷಯಗಳು</option>` +
+      subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  }
+
+  function renderProgress() {
+    const area = document.getElementById("progress-area");
+    const c = cur();
+    const subj = document.getElementById("progressSubject").value || "__all";
+    const tests = classHistory(c.id).filter(h => subj === "__all" || (h.subject || "-") === subj);
+
+    if (tests.length === 0) {
+      area.innerHTML = `<div class="empty-note">ಪ್ರಗತಿ ವರದಿಗಾಗಿ ಕನಿಷ್ಠ ಒಂದು ಪರೀಕ್ಷೆ ದಾಖಲೆಗೆ ಉಳಿಸಿ.</div>`;
+      return;
+    }
+
+    // Names: class list order first, then any extra names from old tests
+    const names = [];
+    const seen = new Set();
+    c.students.forEach(s => { const k = s.name.trim(); if (k && !seen.has(k)) { seen.add(k); names.push(k); } });
+    tests.forEach(t => t.results.forEach(r => { const k = r.name.trim(); if (k && !seen.has(k)) { seen.add(k); names.push(k); } }));
+
+    const lookups = tests.map(t => {
+      const m = {};
+      t.results.forEach(r => { m[r.name.trim()] = r.marks; });
+      return m;
+    });
+
+    let head = `<tr><th>ಅ.ಸಂ</th><th>ವಿದ್ಯಾರ್ಥಿ</th>`;
+    tests.forEach(t => {
+      const label = subj === "__all" ? `${escapeHtml(t.subject || "-")}<br>` : "";
+      head += `<th>${label}${escapeHtml(t.unit || "-")}<br><small>${fmtDate(t.date)} (/${escapeHtml(t.total)})</small></th>`;
+    });
+    head += `<th>ಸರಾಸರಿ %</th></tr>`;
+
+    let body = "";
+    names.forEach((n, i) => {
+      let sumPct = 0, cnt = 0;
+      let cells = "";
+      tests.forEach((t, ti) => {
+        const mk = lookups[ti][n];
+        const tot = parseFloat(t.total) || 0;
+        if (hasMark(mk)) {
+          cells += `<td>${parseFloat(mk)}</td>`;
+          if (tot > 0) { sumPct += parseFloat(mk) / tot * 100; cnt++; }
+        } else {
+          cells += `<td style="color:#94a3b8;">${mk === undefined ? "–" : "ಗೈ"}</td>`;
+        }
+      });
+      let pctCell = "-";
+      if (cnt) {
+        const p = Math.round(sumPct / cnt);
+        const cls = p >= 75 ? "pct-good" : p >= 50 ? "pct-mid" : "pct-low";
+        pctCell = `<span class="${cls}">${p}%</span>`;
+      }
+      body += `<tr><td>${i + 1}</td><td>${escapeHtml(n)}</td>${cells}<td>${pctCell}</td></tr>`;
+    });
+
+    const school = (state.schoolName || "").trim() || "ಶಾಲೆಯ ಹೆಸರು";
+    area.innerHTML = `
+      <div class="result-header">
+        <div class="school-name">${escapeHtml(school)}</div>
+        <div class="test-subtitle">ಪ್ರಗತಿ ವರದಿ — ${escapeHtml(c.name)}${subj !== "__all" ? " — " + escapeHtml(subj) : ""}</div>
+      </div>
+      <table class="progress-table"><thead>${head}</thead><tbody>${body}</tbody></table>
+      <div class="result-footer">
+        <div>ಪರೀಕ್ಷೆಗಳು: ${tests.length} | ವಿದ್ಯಾರ್ಥಿಗಳು: ${names.length}</div>
+        <div class="legend-row">
+          <span class="pct-good">≥75%</span><span class="pct-mid">50–74%</span><span class="pct-low">&lt;50%</span>
+        </div>
+      </div>`;
+  }
+
+  // ---------------- Backup ----------------
+  function exportBackup() {
+    const blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Result_Backup_${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  function importBackup(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const d = JSON.parse(reader.result);
+        if (!d || !Array.isArray(d.classes) || d.classes.length === 0) throw new Error("bad");
+        const hCount = Array.isArray(d.history) ? d.history.length : 0;
+        if (!confirm(`ಈ ಬ್ಯಾಕಪ್‌ನಲ್ಲಿ ${d.classes.length} ತರಗತಿಗಳು ಮತ್ತು ${hCount} ಪರೀಕ್ಷೆಗಳಿವೆ. ಈಗಿನ ಡೇಟಾ ಬದಲಾಗಿ ಇದನ್ನು ಹಾಕಬೇಕೆ?`)) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+        state = { schoolName: "", testTitle: DEFAULT_TITLE, teacherName: "", rankOrder: false, activeClassId: null, classes: [], history: [] };
+        loadState();
+        refreshAll();
+        alert("✅ ಬ್ಯಾಕಪ್ ಮರಳಿ ತರಲಾಗಿದೆ.");
+      } catch (e) {
+        alert("❌ ಈ ಫೈಲ್ ಸರಿಯಾದ ಬ್ಯಾಕಪ್ ಅಲ್ಲ.");
+      } finally {
+        input.value = "";
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------------- Image export ----------------
+  async function generateCanvas(elementId) {
     if (typeof html2canvas === "undefined") {
       alert("Image ತಯಾರಿಸಲು ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಅಗತ್ಯವಿದೆ. ದಯವಿಟ್ಟು ಇಂಟರ್ನೆಟ್ ಆನ್ ಮಾಡಿ ಪುಟವನ್ನು Refresh ಮಾಡಿ.");
       return null;
     }
-    const element = document.getElementById("capture-area");
+    const element = document.getElementById(elementId);
     return await html2canvas(element, {
       scale: 2.5,
       backgroundColor: "#ffffff",
-      useCORS: true
+      useCORS: true,
+      windowWidth: Math.max(element.scrollWidth + 40, 800)
     });
   }
 
-  async function downloadResultImage() {
-    const canvas = await generateCanvas();
-    if (!canvas) return;
+  function safeFile(s) {
+    return String(s || "").trim().replace(/[\\/:*?"<>|\s]+/g, "_") || "Result";
+  }
 
-    const unit = document.getElementById("unitName").value.trim() || "Result";
+  function downloadCanvas(canvas, filename) {
     const link = document.createElement("a");
-    link.download = `Test_Result_${unit}.png`;
+    link.download = filename;
     link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
     link.click();
+    link.remove();
+  }
+
+  async function downloadResultImage() {
+    const canvas = await generateCanvas("capture-area");
+    if (!canvas) return;
+    const c = cur();
+    downloadCanvas(canvas, `Result_${safeFile(c.name)}_${safeFile(c.subject)}_${safeFile(c.unit)}.png`);
+  }
+
+  async function downloadProgressImage() {
+    if (!classHistory(cur().id).length) {
+      alert("ಪ್ರಗತಿ ವರದಿಗಾಗಿ ಕನಿಷ್ಠ ಒಂದು ಪರೀಕ್ಷೆ ದಾಖಲೆಗೆ ಉಳಿಸಿ.");
+      return;
+    }
+    const canvas = await generateCanvas("progress-area");
+    if (!canvas) return;
+    downloadCanvas(canvas, `Progress_${safeFile(cur().name)}.png`);
   }
 
   async function shareResultImage() {
-    const canvas = await generateCanvas();
+    const canvas = await generateCanvas("capture-area");
     if (!canvas) return;
+    const c = cur();
 
     canvas.toBlob(async (blob) => {
-      const file = new File([blob], "Test_Result.png", { type: "image/png" });
-      const school = document.getElementById("schoolName").value.trim() || "ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ";
-      const unit = document.getElementById("unitName").value.trim() || "";
+      const file = new File([blob], `Result_${safeFile(c.name)}.png`, { type: "image/png" });
+      const school = (state.schoolName || "").trim() || "ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ";
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
             files: [file],
             title: school,
-            text: `${school} - ${unit} ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ`
+            text: `${school} - ${c.name} ${c.subject || ""} ${c.unit || ""} ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶ`
           });
         } catch (err) {
           // User cancelled share
         }
       } else {
         alert("ನಿಮ್ಮ ಬ್ರೌಸರ್ ನೇರ Share ಬೆಂಬಲಿಸುತ್ತಿಲ್ಲ. Image ಅನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ, ನಂತರ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ.");
-        downloadResultImage();
+        downloadCanvas(canvas, `Result_${safeFile(c.name)}_${safeFile(c.unit)}.png`);
       }
     }, "image/png");
   }
+
+  // ---------------- Start ----------------
+  window.addEventListener("load", function () {
+    loadState();
+    refreshAll();
+  });
 </script>
 
 </body>
